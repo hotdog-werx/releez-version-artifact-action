@@ -1,0 +1,128 @@
+name: 'Releez Version Artifact'
+
+description: 'Generate artifact versions with releez'
+
+inputs:
+  releez-version:
+    description: 'Version of releez to use'
+    required: false
+    default: 'fee4c55bbd6d3e514889c6514a1bb6573b8fdf64'
+  prerelease-type:
+    description: 'Type of prerelease (alpha, beta, rc)'
+    required: false
+    default: 'rc'
+  prerelease-number:
+    description: 'Prerelease number'
+    required: false
+    default: '0'
+  is-full-release:
+    description: 'Indicates if this is a full release'
+    required: false
+    default: 'false'
+  build-number:
+    description: 'Build number for the release'
+    required: false
+    default: ${{ github.run_number }}
+  version-override:
+    description: 'Override for the next version, otherwise detect it from the repo context'
+    required: false
+    default: ''
+  alias-tags:
+    description: 'Type of alias tags to generate (none, major or minor)'
+    required: false
+    default: 'none'
+  github-token:
+    description: 'GitHub token for authentication'
+    required: false
+    default: '${{ github.token }}'
+
+outputs:
+  semver-tags:
+    description: 'Generated semantic version tags'
+    value: ${{ steps.generate-tags.outputs.semver-tags }}
+  docker-tags:
+    description: 'Generated Docker tags'
+    value: ${{ steps.generate-tags.outputs.docker-tags }}
+  pep440-tags:
+    description: 'Generated PEP440 (Python) tags'
+    value: ${{ steps.generate-tags.outputs.pep440-tags }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Ensure uv
+      run: |
+        if ! command -v uv &> /dev/null
+        then
+          echo "uv could not be found, please install uv to proceed."
+          exit 1
+        fi
+      shell: bash
+
+    - name: Install releez as tool
+      run: |
+        uv tool install git+https://github.com/hotdog-werx/releez@${{ inputs.releez-version }}
+      shell: bash
+
+    - name: Generate Tags
+      id: generate-tags
+      run: |
+        set -euo pipefail
+
+        echo "Generating version tags..."
+
+        commonArgs=()
+
+        if [ -n "${{ inputs.prerelease-type }}" ]; then
+            commonArgs+=(
+                --prerelease-type "${{ inputs.prerelease-type }}"
+                --prerelease-number "${{ inputs.prerelease-number }}"
+            )
+        fi
+
+        if [ "${{ inputs.is-full-release }}" = "true" ]; then
+            commonArgs+=(
+                --is-full-release
+                --alias-tags "${{ inputs.alias-tags }}"
+            )
+        fi
+
+        if [ -n "${{ inputs.build-number }}" ]; then
+            commonArgs+=(
+                --build-number "${{ inputs.build-number }}"
+            )
+        fi
+
+        if [ -n "${{ inputs.version-override }}" ]; then
+            commonArgs+=(
+                --version-override "${{ inputs.version-override }}"
+            )
+        fi
+
+        semverTags=$(uvx releez version artifact \
+            --scheme semver \
+            "${commonArgs[@]}"
+        )
+        dockerTags=$(uvx releez version artifact \
+            --scheme docker \
+            "${commonArgs[@]}"
+        )
+        pep440Tag=$(uvx releez version artifact \
+            --scheme pep440 \
+            "${commonArgs[@]}"
+        )
+
+        {
+            echo "semver-tags<<EOF"
+            echo "$semverTags"
+            echo "EOF"
+            echo "docker-tags<<EOF"
+            echo "$dockerTags"
+            echo "EOF"
+            echo "pep440-tags<<EOF"
+            echo "$pep440Tag"
+            echo "EOF"
+        } >> $GITHUB_OUTPUT
+
+        cat $GITHUB_OUTPUT
+      shell: bash
