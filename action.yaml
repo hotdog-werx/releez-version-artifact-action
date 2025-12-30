@@ -6,7 +6,7 @@ inputs:
   releez-version:
     description: 'Version of releez to use'
     required: false
-    default: 'fee4c55bbd6d3e514889c6514a1bb6573b8fdf64'
+    default: 'b91ec5912338a4cf76715703f8cdc8639313ad8b'
   prerelease-type:
     description: 'Type of prerelease (alpha, beta, rc)'
     required: false
