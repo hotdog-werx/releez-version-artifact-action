@@ -6,7 +6,7 @@ inputs:
   releez-version:
     description: 'Version of releez to use'
     required: false
-    default: '0.1.0'
+    default: '0.1.2'
   prerelease-type:
     description: 'Type of prerelease (alpha, beta, rc)'
     required: false
@@ -66,6 +66,8 @@ runs:
 
     - name: Generate Tags
       id: generate-tags
+      env:
+        RELEEZ_GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         set -euo pipefail
 
