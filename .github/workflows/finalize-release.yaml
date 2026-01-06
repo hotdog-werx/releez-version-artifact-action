@@ -27,8 +27,6 @@ jobs:
       - name: Releez finalize
         id: releez
         uses: hotdog-werx/releez-finalize-action@v0
-        with:
-          is-full-release: 'true'
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

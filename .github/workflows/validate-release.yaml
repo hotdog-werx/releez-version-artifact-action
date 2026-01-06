@@ -30,7 +30,6 @@ jobs:
         id: releez
         uses: hotdog-werx/releez-finalize-action@v0
         with:
-          is-full-release: 'true'
           dry-run: 'true'
 
       - name: Comment PR
