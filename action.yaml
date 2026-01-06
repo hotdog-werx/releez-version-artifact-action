@@ -6,11 +6,11 @@ inputs:
   releez-version:
     description: 'Version of releez to use'
     required: false
-    default: 'b91ec5912338a4cf76715703f8cdc8639313ad8b'
+    default: '0.1.0'
   prerelease-type:
     description: 'Type of prerelease (alpha, beta, rc)'
     required: false
-    default: 'rc'
+    default: ''
   prerelease-number:
     description: 'Prerelease number'
     required: false
@@ -30,22 +30,22 @@ inputs:
   alias-tags:
     description: 'Type of alias tags to generate (none, major or minor)'
     required: false
-    default: 'none'
+    default: ''
   github-token:
     description: 'GitHub token for authentication'
     required: false
     default: '${{ github.token }}'
 
 outputs:
-  semver-tags:
-    description: 'Generated semantic version tags'
-    value: ${{ steps.generate-tags.outputs.semver-tags }}
-  docker-tags:
-    description: 'Generated Docker tags'
-    value: ${{ steps.generate-tags.outputs.docker-tags }}
-  pep440-tags:
-    description: 'Generated PEP440 (Python) tags'
-    value: ${{ steps.generate-tags.outputs.pep440-tags }}
+  semver-versions:
+    description: 'Generated semantic version versions'
+    value: ${{ steps.generate-tags.outputs.semver-versions }}
+  docker-versions:
+    description: 'Generated Docker versions'
+    value: ${{ steps.generate-tags.outputs.docker-versions }}
+  pep440-versions:
+    description: 'Generated PEP440 (Python) versions'
+    value: ${{ steps.generate-tags.outputs.pep440-versions }}
 
 runs:
   using: 'composite'
@@ -83,8 +83,12 @@ runs:
         if [ "${{ inputs.is-full-release }}" = "true" ]; then
             commonArgs+=(
                 --is-full-release
-                --alias-tags "${{ inputs.alias-tags }}"
             )
+            if [ -n "${{ inputs.alias-tags }}" ]; then
+                commonArgs+=(
+                    --alias-tags "${{ inputs.alias-tags }}"
+                )
+            fi
         fi
 
         if [ -n "${{ inputs.build-number }}" ]; then
@@ -99,28 +103,28 @@ runs:
             )
         fi
 
-        semverTags=$(uvx releez version artifact \
+        semverVersions=$(uvx releez version artifact \
             --scheme semver \
             "${commonArgs[@]}"
         )
-        dockerTags=$(uvx releez version artifact \
+        dockerVersions=$(uvx releez version artifact \
             --scheme docker \
             "${commonArgs[@]}"
         )
-        pep440Tag=$(uvx releez version artifact \
+        pep440Versions=$(uvx releez version artifact \
             --scheme pep440 \
             "${commonArgs[@]}"
         )
 
         {
-            echo "semver-tags<<EOF"
-            echo "$semverTags"
+            echo "semver-versions<<EOF"
+            echo "$semverVersions"
             echo "EOF"
-            echo "docker-tags<<EOF"
-            echo "$dockerTags"
+            echo "docker-versions<<EOF"
+            echo "$dockerVersions"
             echo "EOF"
-            echo "pep440-tags<<EOF"
-            echo "$pep440Tag"
+            echo "pep440-versions<<EOF"
+            echo "$pep440Versions"
             echo "EOF"
         } >> $GITHUB_OUTPUT
 
