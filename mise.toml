@@ -6,7 +6,7 @@ lefthook = "2.0.12"
 dprint = "0.50.1"
 "pipx:pkglink" = { version = "1.0.1" }
 "pipx:poethepoet" = { version = "0.38.0" }
-"pipx:git+https://github.com/hotdog-werx/releez.git" = "01fa1bb"
+"pipx:git+https://github.com/hotdog-werx/releez.git" = "0.1.2"
 
 [hooks]
 # Note: Postinstall hooks do not run in CI, this is intentional.

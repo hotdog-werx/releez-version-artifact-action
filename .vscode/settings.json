@@ -1,0 +1,10 @@
+{
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "match": "\\.(json|yml|yaml|toml|md)$",
+        "cmd": "mise exec -- poe format-dprint ${file}"
+      }
+    ]
+  }
+}
