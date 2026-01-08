@@ -4,7 +4,7 @@ description: 'Generate artifact versions with releez'
 
 inputs:
   releez-version:
-    description: 'Version of releez to use'
+    description: 'Git ref (tag, branch, or SHA) of releez to use'
     required: false
     default: '0.1.2'
   prerelease-type:
@@ -93,7 +93,7 @@ runs:
             fi
         fi
 
-        if [ -n "${{ inputs.build-number }}" ]; then
+        if [ "${{ inputs.is-full-release }}" != "true" ] && [ -n "${{ inputs.build-number }}" ]; then
             commonArgs+=(
                 --build-number "${{ inputs.build-number }}"
             )
@@ -128,7 +128,7 @@ runs:
             echo "pep440-versions<<EOF"
             echo "$pep440Versions"
             echo "EOF"
-        } >> $GITHUB_OUTPUT
+        } >> "$GITHUB_OUTPUT"
 
-        cat $GITHUB_OUTPUT
+        cat "$GITHUB_OUTPUT"
       shell: bash
