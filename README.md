@@ -42,31 +42,31 @@ jobs:
       - id: versions
         uses: hotdog-werx/releez-version-artifact-action@v1
         with:
-          is-full-release: "true"
+          is-full-release: 'true'
           alias-versions: minor
       - run: echo "${{ steps.versions.outputs.semver-versions }}"
 ```
 
 ## Inputs
 
-| Input | Required | Default | Description |
-| --- | --- | --- | --- |
-| `releez-version` | no | `0.1.2` | Git ref for the `releez` tool to install (tag, branch, or SHA). |
-| `prerelease-type` | no | `""` | Prerelease type: `alpha`, `beta`, or `rc`. |
-| `prerelease-number` | no | `0` | Number appended to the prerelease tag. |
-| `is-full-release` | no | `false` | Set to `true` to compute a full release (enables alias versions). |
-| `build-number` | no | `${{ github.run_number }}` | Build number appended to prerelease versions. |
-| `version-override` | no | `""` | Override the version detected from the repo. |
-| `alias-versions` | no | `""` | Alias versions to emit on full releases: `none`, `major`, or `minor`. |
-| `github-token` | no | `${{ github.token }}` | Token used by `releez` for GitHub access. |
+| Input               | Required | Default                    | Description                                                           |
+| ------------------- | -------- | -------------------------- | --------------------------------------------------------------------- |
+| `releez-version`    | no       | `0.1.3`                    | Git ref for the `releez` tool to install (tag, branch, or SHA).       |
+| `prerelease-type`   | no       | `""`                       | Prerelease type: `alpha`, `beta`, or `rc`.                            |
+| `prerelease-number` | no       | `0`                        | Number appended to the prerelease tag.                                |
+| `is-full-release`   | no       | `false`                    | Set to `true` to compute a full release (enables alias versions).     |
+| `build-number`      | no       | `${{ github.run_number }}` | Build number appended to prerelease versions.                         |
+| `version-override`  | no       | `""`                       | Override the version detected from the repo.                          |
+| `alias-versions`    | no       | `""`                       | Alias versions to emit on full releases: `none`, `major`, or `minor`. |
+| `github-token`      | no       | `${{ github.token }}`      | Token used by `releez` for GitHub access.                             |
 
 ## Outputs
 
-| Output | Description |
-| --- | --- |
+| Output            | Description                  |
+| ----------------- | ---------------------------- |
 | `semver-versions` | Semver-formatted version(s). |
-| `docker-versions` | Docker tag version(s). |
-| `pep440-versions` | PEP440 (Python) version(s). |
+| `docker-versions` | Docker tag version(s).       |
+| `pep440-versions` | PEP440 (Python) version(s).  |
 
 ## Output format
 
