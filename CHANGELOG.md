@@ -1,3 +1,10 @@
+## [0.1.2] - 2026-01-08
+
+
+### 🐛 Bug Fixes
+
+- Bump to releez 0.1.3 by [@jamestrousdale](https://github.com/jamestrousdale)
+
 ## [0.1.1] - 2026-01-08
 
 
