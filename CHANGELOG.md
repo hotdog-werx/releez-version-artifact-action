@@ -1,3 +1,10 @@
+## [0.1.1] - 2026-01-08
+
+
+### 🐛 Bug Fixes
+
+- Only supply build number when appropriate by [@jamestrousdale](https://github.com/jamestrousdale)
+
 ## [0.1.0] - 2026-01-06
 
 
