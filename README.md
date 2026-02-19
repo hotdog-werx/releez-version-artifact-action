@@ -7,9 +7,11 @@ match your repo's semantic release rules (powered by `git-cliff`).
 
 ## Requirements
 
-- `uv` on `PATH` (see https://github.com/astral-sh/uv)
 - `git` on `PATH`
 - A `cliff.toml` (or compatible `git-cliff` config) in your repo
+
+`uv` is installed automatically via `astral-sh/setup-uv` if not already present.
+To control the version of `uv`, pre-install it before calling this action.
 
 ## Usage
 
@@ -21,9 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
       - id: versions
-        uses: hotdog-werx/releez-version-artifact-action@v1
+        uses: hotdog-werx/releez-version-artifact-action@v9
         with:
           prerelease-type: alpha
           prerelease-number: ${{ github.event.pull_request.number }}
@@ -38,9 +39,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
       - id: versions
-        uses: hotdog-werx/releez-version-artifact-action@v1
+        uses: hotdog-werx/releez-version-artifact-action@v0
         with:
           is-full-release: 'true'
           alias-versions: minor
@@ -51,7 +51,7 @@ jobs:
 
 | Input               | Required | Default                    | Description                                                           |
 | ------------------- | -------- | -------------------------- | --------------------------------------------------------------------- |
-| `releez-version`    | no       | `0.1.3`                    | Git ref for the `releez` tool to install (tag, branch, or SHA).       |
+| `releez-version`    | no       | `0.2.6`                    | Version of `releez` to use.                                           |
 | `prerelease-type`   | no       | `""`                       | Prerelease type: `alpha`, `beta`, or `rc`.                            |
 | `prerelease-number` | no       | `0`                        | Number appended to the prerelease tag.                                |
 | `is-full-release`   | no       | `false`                    | Set to `true` to compute a full release (enables alias versions).     |
