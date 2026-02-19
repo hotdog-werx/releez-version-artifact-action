@@ -9,7 +9,7 @@ sequence = [{ cmd = "actionlint" }, { cmd = "actionlint .github/tests/*" }]
 
 [tool.poe.tasks.test-actions]
 help = "run act tests for GitHub actions"
-cmd = "act workflow_dispatch -W .github/tests/"
+cmd = "act workflow_dispatch -W .github/tests/ --max-parallel 1"
 
 [tool.poe.tasks.ci-checks]
 help = "run all checks for CI"
