@@ -1,3 +1,6 @@
+[![CI](https://img.shields.io/github/actions/workflow/status/hotdog-werx/releez-version-artifact-action/ci-checks.yaml)](https://github.com/hotdog-werx/releez-version-artifact-action/actions/workflows/ci-checks.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 # Releez Version Artifact Action
 
 Generate semver, Docker, and PEP440 artifact versions using `releez`.
