@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  test-version-override:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -89,6 +89,113 @@ jobs:
           assert_eq "semver-versions" "$ACTUAL_SEMVER" "$EXPECT_SEMVER"
           assert_eq "docker-versions" "$ACTUAL_DOCKER" "$EXPECT_DOCKER"
           assert_eq "pep440-versions" "$ACTUAL_PEP440" "$EXPECT_PEP440"
+
+          exit $fail
+        shell: bash
+
+  test-preinstalled-uv:
+    runs-on: ubuntu-latest
+    needs: test-version-override
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Pre-install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Run action (preinstalled-uv)
+        id: version
+        uses: ./
+        with:
+          version-override: '3.0.0'
+          prerelease-type: 'rc'
+          prerelease-number: '7'
+          is-full-release: 'false'
+          alias-versions: 'none'
+          github-token: ${{ github.token }}
+
+      - name: Assert outputs (preinstalled-uv)
+        env:
+          ACTUAL_SEMVER: ${{ steps.version.outputs.semver-versions }}
+          ACTUAL_DOCKER: ${{ steps.version.outputs.docker-versions }}
+          ACTUAL_PEP440: ${{ steps.version.outputs.pep440-versions }}
+        run: |
+          fail=0
+
+          assert_eq() {
+            local name="$1" actual="$2" expected="$3"
+            if [ "$actual" = "$expected" ]; then
+              echo "OK   [preinstalled-uv]: $name"
+            else
+              echo "FAIL [preinstalled-uv]: $name"
+              echo "  expected: $expected"
+              echo "  actual:   $actual"
+              fail=1
+            fi
+          }
+
+          assert_eq "semver-versions" "$ACTUAL_SEMVER" "3.0.0-rc7+456"
+          assert_eq "docker-versions" "$ACTUAL_DOCKER" "3.0.0-rc7-456"
+          assert_eq "pep440-versions" "$ACTUAL_PEP440" "3.0.0rc7.dev456"
+
+          exit $fail
+        shell: bash
+
+  test-git-detection:
+    runs-on: ubuntu-latest
+    needs: test-preinstalled-uv
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Set up git and apply tag
+        run: |
+          git config user.email "test@example.com"
+          git config user.name "Test"
+          git tag 100.0.0
+          git commit --allow-empty -m "feat: trigger minor bump"
+        shell: bash
+
+      - name: Run action (git-detection)
+        id: version
+        uses: ./
+        with:
+          prerelease-type: 'rc'
+          prerelease-number: '1'
+          is-full-release: 'false'
+          alias-versions: 'none'
+          github-token: ${{ github.token }}
+
+      - name: Assert outputs (git-detection)
+        env:
+          ACTUAL_SEMVER: ${{ steps.version.outputs.semver-versions }}
+          ACTUAL_DOCKER: ${{ steps.version.outputs.docker-versions }}
+          ACTUAL_PEP440: ${{ steps.version.outputs.pep440-versions }}
+        run: |
+          fail=0
+
+          assert_eq() {
+            local name="$1" actual="$2" expected="$3"
+            if [ "$actual" = "$expected" ]; then
+              echo "OK   [git-detection]: $name"
+            else
+              echo "FAIL [git-detection]: $name"
+              echo "  expected: $expected"
+              echo "  actual:   $actual"
+              fail=1
+            fi
+          }
+
+          # TODO: fill in expected values after first passing run
+          assert_eq "semver-versions" "$ACTUAL_SEMVER" "100.1.0-rc1+456"
+          assert_eq "docker-versions" "$ACTUAL_DOCKER" "100.1.0-rc1-456"
+          assert_eq "pep440-versions" "$ACTUAL_PEP440" "100.1.0rc1.dev456"
 
           exit $fail
         shell: bash
