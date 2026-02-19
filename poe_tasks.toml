@@ -2,5 +2,15 @@
 include = [".codeguide/poe/formatters.toml", ".codeguide/poe/ci-checks.toml"]
 
 [tool.poe.tasks]
-ci-checks.help = "run all checks for CI"
-ci-checks.sequence = ["check-dprint"]
+
+[tool.poe.tasks.check-actions]
+help = "run actionlint to check GitHub Actions workflow files"
+sequence = [{ cmd = "actionlint" }, { cmd = "actionlint .github/tests/*" }]
+
+[tool.poe.tasks.test-actions]
+help = "run act tests for GitHub actions"
+cmd = "act workflow_dispatch -W .github/tests/"
+
+[tool.poe.tasks.ci-checks]
+help = "run all checks for CI"
+sequence = ["check-dprint", "check-actions", "test-actions"]

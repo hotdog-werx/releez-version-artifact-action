@@ -4,9 +4,9 @@ description: 'Generate artifact versions with releez'
 
 inputs:
   releez-version:
-    description: 'Git ref (tag, branch, or SHA) of releez to use'
+    description: 'Version of releez to use'
     required: false
-    default: '0.1.3'
+    default: '0.2.6'
   prerelease-type:
     description: 'Type of prerelease (alpha, beta, rc)'
     required: false
@@ -50,24 +50,38 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Ensure uv
+    - name: Check for uv
+      id: check-uv
       run: |
-        if ! command -v uv &> /dev/null
-        then
-          echo "uv could not be found, please install uv to proceed."
-          exit 1
+        if command -v uv &> /dev/null; then
+          echo "found-uv=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "found-uv=false" >> "$GITHUB_OUTPUT"
         fi
       shell: bash
 
+    - name: Install uv
+      if: steps.check-uv.outputs.found-uv != 'true'
+      uses: astral-sh/setup-uv@v7
+
     - name: Install releez as tool
+      env:
+        INPUT_RELEEZ_VERSION: ${{ inputs.releez-version }}
       run: |
-        uv tool install git+https://github.com/hotdog-werx/releez@${{ inputs.releez-version }}
+        uv tool install releez@"$INPUT_RELEEZ_VERSION"
       shell: bash
 
     - name: Generate Tags
       id: generate-tags
       env:
         RELEEZ_GITHUB_TOKEN: ${{ inputs.github-token }}
+        INPUT_RELEEZ_VERSION: ${{ inputs.releez-version }}
+        INPUT_PRERELEASE_TYPE: ${{ inputs.prerelease-type }}
+        INPUT_PRERELEASE_NUMBER: ${{ inputs.prerelease-number }}
+        INPUT_IS_FULL_RELEASE: ${{ inputs.is-full-release }}
+        INPUT_BUILD_NUMBER: ${{ inputs.build-number }}
+        INPUT_VERSION_OVERRIDE: ${{ inputs.version-override }}
+        INPUT_ALIAS_VERSIONS: ${{ inputs.alias-versions }}
       run: |
         set -euo pipefail
 
@@ -75,45 +89,45 @@ runs:
 
         commonArgs=()
 
-        if [ -n "${{ inputs.prerelease-type }}" ]; then
+        if [ -n "$INPUT_PRERELEASE_TYPE" ]; then
             commonArgs+=(
-                --prerelease-type "${{ inputs.prerelease-type }}"
-                --prerelease-number "${{ inputs.prerelease-number }}"
+                --prerelease-type "$INPUT_PRERELEASE_TYPE"
+                --prerelease-number "$INPUT_PRERELEASE_NUMBER"
             )
         fi
 
-        if [ "${{ inputs.is-full-release }}" = "true" ]; then
+        if [ "$INPUT_IS_FULL_RELEASE" = "true" ]; then
             commonArgs+=(
                 --is-full-release
             )
-            if [ -n "${{ inputs.alias-versions }}" ]; then
+            if [ -n "$INPUT_ALIAS_VERSIONS" ]; then
                 commonArgs+=(
-                    --alias-versions "${{ inputs.alias-versions }}"
+                    --alias-versions "$INPUT_ALIAS_VERSIONS"
                 )
             fi
         fi
 
-        if [ "${{ inputs.is-full-release }}" != "true" ] && [ -n "${{ inputs.build-number }}" ]; then
+        if [ "$INPUT_IS_FULL_RELEASE" != "true" ] && [ -n "$INPUT_BUILD_NUMBER" ]; then
             commonArgs+=(
-                --build-number "${{ inputs.build-number }}"
+                --build-number "$INPUT_BUILD_NUMBER"
             )
         fi
 
-        if [ -n "${{ inputs.version-override }}" ]; then
+        if [ -n "$INPUT_VERSION_OVERRIDE" ]; then
             commonArgs+=(
-                --version-override "${{ inputs.version-override }}"
+                --version-override "$INPUT_VERSION_OVERRIDE"
             )
         fi
 
-        semverVersions=$(uvx releez version artifact \
+        semverVersions=$(uv tool run releez@"$INPUT_RELEEZ_VERSION" version artifact \
             --scheme semver \
             "${commonArgs[@]}"
         )
-        dockerVersions=$(uvx releez version artifact \
+        dockerVersions=$(uv tool run releez@"$INPUT_RELEEZ_VERSION" version artifact \
             --scheme docker \
             "${commonArgs[@]}"
         )
-        pep440Versions=$(uvx releez version artifact \
+        pep440Versions=$(uv tool run releez@"$INPUT_RELEEZ_VERSION" version artifact \
             --scheme pep440 \
             "${commonArgs[@]}"
         )
@@ -130,5 +144,9 @@ runs:
             echo "EOF"
         } >> "$GITHUB_OUTPUT"
 
-        cat "$GITHUB_OUTPUT"
+        echo "::group::Generated Versions"
+        echo "semver-versions: $semverVersions"
+        echo "docker-versions: $dockerVersions"
+        echo "pep440-versions: $pep440Versions"
+        echo "::endgroup::"
       shell: bash
